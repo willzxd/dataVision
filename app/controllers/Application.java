@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import play.*;
 import play.data.DynamicForm;
 import play.data.Form;
-import play.libs.Json;
 import play.mvc.*;
 import views.html.*;
 
@@ -30,12 +29,12 @@ public class Application extends Controller {
         dbList = sqlWritter.readDbList();
         sqlWritter.closeCon();
         List<String> tbList = new ArrayList<>();
-        return ok(index.render("DataVision", dbList, null, null, null, null));
+        return ok(index.render(dbList, null, null, null, null));
     }
 
     /**
-     * Used in javascript to update the list of table
-     * @return
+     * Used in javascriptRouter to update the list of table
+     * @return Result list of table name, format: json
      */
     public static Result getTableList(String db) {
         dbName = db;
@@ -44,7 +43,6 @@ public class Application extends Controller {
         sqlWritter.closeCon();
         System.out.println("im");
         return ok(tableList);
-        //return ok(selectTb.render("DataVision", dbname, tbList));
     }
 
     public static Result previewTb() {
@@ -57,7 +55,7 @@ public class Application extends Controller {
         //List<String> tbList = sqlWritter.readTableList();
         List<List<String>> preview = sqlWritter.previewTable(tbname);
         sqlWritter.closeCon();
-        return ok(index.render("DataVision", dbList, dbName, null, preview, null));
+        return ok(index.render(dbList, dbName, null, preview, null));
         //return ok(previewTb.render("DataVision", preview));
     }
 
@@ -73,7 +71,7 @@ public class Application extends Controller {
         //query database
         SqlConn sqlWritter = new SqlConn(dbName);
         List<List<String>> res = sqlWritter.query(select, from, where, groupBy, orderBy, limit);
-        return ok(index.render("DataVision", dbList, dbName, null, null, res));
+        return ok(index.render(dbList, dbName, null, null, res));
     }
 
     // Javascript routing

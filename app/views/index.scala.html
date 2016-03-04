@@ -1,21 +1,42 @@
-@(message: String)(dbList: java.util.List[String])(dbname: String)(tbList: java.util.List[String])(preview: java.util.List[java.util.List[String]])(queryAns: java.util.List[java.util.List[String]])
+@(dbList: java.util.List[String])(dbname: String)(tbList: java.util.List[String])(preview: java.util.List[java.util.List[String]])(queryAns: java.util.List[java.util.List[String]])
 
-@main("Welcome to dbVision") {
+@main("Welcome to DataExplorer") {
 
-    @message
-    <br/>
-    <div id="output"></div>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-3 col-md-2 sidebar">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Database List</h3>
+                    </div>
+                    <ul class="list-group">
+                        @for(name <- dbList) {
+                            <li id="@name" class="list-group-item clickable" id="@name">@name</li>
+                        }
+                    </ul>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Table List</h3>
+                    </div>
+                    <ul class="list-group" id="tableList"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <form action="@routes.Application.index()"><button type="submit">Reset</button></form>
 
-        <select id="dbNameList">
-            @for(name <- dbList) {
-                <option value="@name">@name</option>
-            }
-        </select>
+    <select id="dbNameList">
+        @for(name <- dbList) {
+            <option value="@name">@name</option>
+        }
+    </select>
     <button type="button" class="clickable" id="dbSelection">Select</button>
 
     <form action="@routes.Application.previewTb()" method="post">
-        <select id="tableList" name="tbname"></select>
+        <!--select id="tableList" name="tbname"></select-->
         <input type="submit" value="preview">
     </form>
     @if(preview != null) {
@@ -177,34 +198,5 @@
 
     }
 
-    <script type="text/javascript">
-            $("#dbNameList").change(changed);
-            var successFn = function(data) {
-                var oldTableList = document.getElementById("tableList");
-                oldTableList.options.length = 0;
-                for(var i in data) {
-                    for (var key in data[i]) {
-                        var newTableList = document.getElementById("tableList");
-                        newTableList.add(new Option(data[i][key],data[i][key]));
-                        console.debug("Success:");
-                        console.debug(data[i][key]);
-                    }
-                }
-                console.debug("Success:");
-                console.debug(data);
-            };
-            var errorFn = function(err) {
-                console.debug("Error:");
-                console.debug(err);
-            }
 
-            ajax1 = {
-                success: successFn,
-                error: errorFn
-            }
-            function changed(){
-                var databaseName = $("#dbNameList").val();
-                jsRoutes.controllers.Application.getTableList(databaseName).ajax(ajax1);
-            }
-    </script>
 }
