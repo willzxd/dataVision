@@ -3,10 +3,10 @@
 On-going personal project.
 
 ###Overview
-1. visualizing query result
+1. Visualizing query result
 2. Giving explanations automatically
 3. Ranking explanation smartly
-4. interact with users
+4. Interacting with users
 
 ####How to run
 
