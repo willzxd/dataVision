@@ -8,15 +8,19 @@ import play.data.Form;
 import play.mvc.*;
 import views.html.*;
 
-import controllers.SqlConn;
-
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class Application extends Controller {
+    /**
+     * List of database
+     */
     public static List<String> dbList;
-    public static String dbName;
+    /**
+     * current selected database
+     */
+    public static String currentDatabase;
     public static JsonNode tableList;
 
 
@@ -29,7 +33,7 @@ public class Application extends Controller {
         dbList = sqlWritter.readDbList();
         sqlWritter.closeCon();
         List<String> tbList = new ArrayList<>();
-        return ok(index.render(dbList, null, null, null, null));
+        return ok(index.render(dbList, null, null));
     }
 
     /**
@@ -37,25 +41,30 @@ public class Application extends Controller {
      * @return Result list of table name, format: json
      */
     public static Result getTableList(String db) {
-        dbName = db;
+        currentDatabase = db;
         SqlConn sqlWritter = new SqlConn(db);
         tableList = sqlWritter.readTableList();
         sqlWritter.closeCon();
-        System.out.println("im");
+        System.out.println(currentDatabase);
         return ok(tableList);
     }
 
-    public static Result previewTb() {
-        DynamicForm requestData = Form.form().bindFromRequest();
-        dbName = requestData.get("dbname");
-        System.out.println(dbName);
-        String tbname = requestData.get("tbname");
-        System.out.println(tbname);
-        SqlConn sqlWritter = new SqlConn(dbName);
+    /**
+     * Given a table name, output the first 5 row of the table as Json
+     * Used in javascriptRouter
+     * @return Result, format: Json
+     */
+    public static Result previewTb(String tableName) {
+//        DynamicForm requestData = Form.form().bindFromRequest();
+//        currentDatabase = requestData.get("dbname");
+//        System.out.println(currentDatabase);
+//        String tbname = requestData.get("tbname");
+//        System.out.println(tbname);
+        SqlConn sqlWritter = new SqlConn(currentDatabase);
         //List<String> tbList = sqlWritter.readTableList();
-        List<List<String>> preview = sqlWritter.previewTable(tbname);
+        JsonNode preview = sqlWritter.previewTable(tableName);
         sqlWritter.closeCon();
-        return ok(index.render(dbList, dbName, null, preview, null));
+        return ok(preview);
         //return ok(previewTb.render("DataVision", preview));
     }
 
@@ -69,9 +78,9 @@ public class Application extends Controller {
         String orderBy = requestData.get("order");
         String limit = requestData.get("limit");
         //query database
-        SqlConn sqlWritter = new SqlConn(dbName);
+        SqlConn sqlWritter = new SqlConn(currentDatabase);
         List<List<String>> res = sqlWritter.query(select, from, where, groupBy, orderBy, limit);
-        return ok(index.render(dbList, dbName, null, null, res));
+        return ok(index.render(dbList, currentDatabase, res));
     }
 
     // Javascript routing
@@ -79,6 +88,7 @@ public class Application extends Controller {
         response().setContentType("text/javascript");
         return ok(Routes.javascriptRouter(
                 "jsRoutes",
-                routes.javascript.Application.getTableList()));
+                routes.javascript.Application.getTableList(),
+                routes.javascript.Application.previewTb()));
     }
 }

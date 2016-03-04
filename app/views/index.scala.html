@@ -1,4 +1,4 @@
-@(dbList: java.util.List[String])(dbname: String)(tbList: java.util.List[String])(preview: java.util.List[java.util.List[String]])(queryAns: java.util.List[java.util.List[String]])
+@(dbList: java.util.List[String])(dbname: String)(queryAns: java.util.List[java.util.List[String]])
 
 @main("Welcome to DataExplorer") {
 
@@ -9,7 +9,7 @@
                     <div class="panel-heading">
                         <h3 class="panel-title">Database List</h3>
                     </div>
-                    <ul class="list-group">
+                    <ul class="list-group" id="dbNameList">
                         @for(name <- dbList) {
                             <li id="@name" class="list-group-item clickable" id="@name">@name</li>
                         }
@@ -23,42 +23,25 @@
                     <ul class="list-group" id="tableList"></ul>
                 </div>
             </div>
-        </div>
+
+
+            <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+                <h3 class="sub-header">Table Preview</h3>
+                <div id="previewTableHolder">
+                    <h4>Choose a database, preview table schema and contents here!</h4>
+                </div>
+                <h3 class="sub-header">SQL Input</h3>
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Write SQL here...">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button">Go!</button>
+                    </span>
+                </div>
+                <h3 class="sub-header">Graph Result</h3>
+                <div id="graphHolder"></div>
+            </div>
     </div>
 
-    <form action="@routes.Application.index()"><button type="submit">Reset</button></form>
-
-    <select id="dbNameList">
-        @for(name <- dbList) {
-            <option value="@name">@name</option>
-        }
-    </select>
-    <button type="button" class="clickable" id="dbSelection">Select</button>
-
-    <form action="@routes.Application.previewTb()" method="post">
-        <!--select id="tableList" name="tbname"></select-->
-        <input type="submit" value="preview">
-    </form>
-    @if(preview != null) {
-        <table border="1">
-        @for(i <- 0 until preview.size) {
-            @if(i == 0) {
-                <tr>
-                @for(s <- preview.get(i)) {
-                    <th>@s</th>
-                }
-                </tr>
-            }
-            @if(i != 0) {
-                <tr>
-                @for(s <- preview.get(i)) {
-                    <td>@s</td>
-                }
-                </tr>
-            }
-        }
-        </table>
-    }
     <form action="@routes.Application.query()" method="post">
         <label>Select</label>
         <input type="text" name="select"/>

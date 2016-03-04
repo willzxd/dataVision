@@ -81,29 +81,25 @@ public class SqlConn {
         }
     }
 
-    public List<List<String>> previewTable(String tbName) {
+    public JsonNode previewTable(String tbName) {
         Statement statement;
-        List<List<String>> preview = new ArrayList<List<String>>();
+        JsonNode preview = null;
         try {
             //execute query
             statement = conn.createStatement();
-            ResultSet res = statement.executeQuery("select column_name from information_schema.columns where table_name = '" +
-                    tbName + "'");
-            List<String> columnList = new ArrayList<>();
-            //find columns name
-            while (res.next()) {
-                columnList.add(res.getString("column_name"));
-            }
-            preview.add(columnList);
-            res = statement.executeQuery("select * from " + tbName + " limit 10");
+//            ResultSet res = statement.executeQuery("select column_name from information_schema.columns where table_name = '" +
+//                    tbName + "'");
+//            List<String> columnList = new ArrayList<>();
+//            //find columns name
+//            while (res.next()) {
+//                columnList.add(res.getString("column_name"));
+//            }
+//            preview.add(columnList);
+            ResultSet res = statement.executeQuery("select array_to_json(array_agg(row_to_json(t))) from ("
+                    +"select * from " + tbName + " limit 5) t");
             //find res of query
             while (res.next()) {
-                List<String> rows = new ArrayList<String>();
-                for (String s: columnList) {
-                    System.out.println(res.getString(s));
-                    rows.add(res.getString(s));
-                }
-                preview.add(rows);
+                preview = Json.parse(res.getString(1));
             }
             return preview;
         }

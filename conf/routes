@@ -5,7 +5,7 @@
 # Home page
 GET     /                           controllers.Application.index()
 GET     /getTableList               controllers.Application.getTableList(dbname:String)
-POST    /preview                    controllers.Application.previewTb()
+GET     /preview                    controllers.Application.previewTb(tableName:String)
 POST    /query                      controllers.Application.query()
 
 # GET     /assets/javascripts/routes  controllers.Application.jsRoutes()

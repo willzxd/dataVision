@@ -9,14 +9,18 @@ $(document).ready(function() {
 
 var successFn = function(data) {
     var oldTableList = document.getElementById("tableList");
+    $("#tableList li").remove()
     for(var i in data) {
         for (var key in data[i]) {
             $("#tableList").append("<li class='list-group-item previewable'" + "id='" + data[i][key] +"'>" + data[i][key] + "</li>");
-            //newTableList.add(new Option(data[i][key],data[i][key]));
             console.debug("Success:");
             console.debug(data[i][key]);
         }
     }
+    $("#tableList").on("click", ".previewable", function(event){
+        var previewTableName = $(event.target).attr("id");
+        createPreviewTable(previewTableName);
+    });
     console.debug("Success:");
     console.debug(data);
 };

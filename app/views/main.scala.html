@@ -35,7 +35,9 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
             <!-- Embedded Javascript router -->
         <script type="text/javascript" src="@routes.Application.javascriptRoutes"></script>
-        <script src="assets/javascripts/tablename.js"></script>
+
+
+
     </head>
     <style>
     .axis path,
@@ -70,7 +72,7 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="#">DataExplorer</a>
+                    <a class="navbar-brand" href="@routes.Application.index()">DataExplorer</a>
                 </div>
                 <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav navbar-right">
@@ -82,5 +84,7 @@
             </div>
         </nav>
         @content
+        <script src="assets/javascripts/tablename.js"></script>
+        <script src="assets/javascripts/preview-table.js"></script>
     </body>
 </html>
