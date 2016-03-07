@@ -87,14 +87,6 @@ public class SqlConn {
         try {
             //execute query
             statement = conn.createStatement();
-//            ResultSet res = statement.executeQuery("select column_name from information_schema.columns where table_name = '" +
-//                    tbName + "'");
-//            List<String> columnList = new ArrayList<>();
-//            //find columns name
-//            while (res.next()) {
-//                columnList.add(res.getString("column_name"));
-//            }
-//            preview.add(columnList);
             ResultSet res = statement.executeQuery("select array_to_json(array_agg(row_to_json(t))) from ("
                     +"select * from " + tbName + " limit 5) t");
             //find res of query
@@ -108,74 +100,21 @@ public class SqlConn {
             return preview;
         }
     }
-    public List<List<String>> query(String select, String from, String where, String group, String order, String limit) {
+    public JsonNode query(String sql) {
         Statement statement;
-        List<List<String>> res = new ArrayList<List<String>>();
+        JsonNode result = null;
         try {
             //execute query
             statement = conn.createStatement();
-            StringBuilder query = new StringBuilder();
-            query.append("select " + select + " from " + from);
-            if (where != null && where.trim().length() != 0) {
-                query.append(" where " + where.trim());
+            ResultSet resultSet = statement.executeQuery("select array_to_json(array_agg(row_to_json(t))) from (" + sql + ") t");
+            while (resultSet.next()) {
+                result = Json.parse(resultSet.getString(1));
             }
-            if (group != null && group.trim().length() != 0) {
-                query.append(" group by " + group.trim());
-            }
-            if (order != null && order.trim().length() != 0) {
-                query.append(" order by " + order.trim());
-            }
-            if (limit != null && limit.trim().length() != 0) {
-                query.append(" limit " + limit.trim());
-            }
-            System.out.println(query.toString());
-            ResultSet ans = statement.executeQuery(query.toString());
-
-            //store column name
-//            int numCol = ans.getMetaData().getColumnCount();
-//            List<String> colList = new ArrayList<>();
-//            for (int i = 1; i <= numCol; i++) {
-//                String colName = ans.getMetaData().getColumnName(i);
-//                colList.add(colName);
-//            }
-//            res.add(colList);
-//            //store every tuples
-//            while (ans.next()) {
-//                List<String> row = new ArrayList<String>();
-//                for (String str: colList) {
-//                    row.add(ans.getString(str));
-//                }
-//                res.add(row);
-//            }
-
-            //every list: column name + data
-            int numCol = ans.getMetaData().getColumnCount();
-            for (int i = 1; i <= numCol; i++) {
-                List<String> column = new ArrayList<>();
-                String colName = ans.getMetaData().getColumnName(i);
-                column.add(colName);
-                res.add(column);
-            }
-            while (ans.next()) {
-                int i = 0;
-                while (i < res.size()) {
-                    res.get(i).add(ans.getString(res.get(i).get(0)));
-                    i++;
-                }
-            }
-            for(List<String> list: res) {
-                list.remove(0);
-            }
-            for (List<String> list: res) {
-                for (String str: list) {
-                    System.out.println(str);
-                }
-            }
-            return res;
+            return result;
         }
         catch (SQLException e) {
             e.printStackTrace();
-            return res;
+            return result;
         }
     }
 }

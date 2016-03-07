@@ -55,11 +55,6 @@ public class Application extends Controller {
      * @return Result, format: Json
      */
     public static Result previewTb(String tableName) {
-//        DynamicForm requestData = Form.form().bindFromRequest();
-//        currentDatabase = requestData.get("dbname");
-//        System.out.println(currentDatabase);
-//        String tbname = requestData.get("tbname");
-//        System.out.println(tbname);
         SqlConn sqlWritter = new SqlConn(currentDatabase);
         //List<String> tbList = sqlWritter.readTableList();
         JsonNode preview = sqlWritter.previewTable(tableName);
@@ -68,19 +63,16 @@ public class Application extends Controller {
         //return ok(previewTb.render("DataVision", preview));
     }
 
-    public static Result query() {
-        //process form
-        DynamicForm requestData = Form.form().bindFromRequest();
-        String select = requestData.get("select");
-        String from = requestData.get("from");
-        String where = requestData.get("where");
-        String groupBy = requestData.get("group");
-        String orderBy = requestData.get("order");
-        String limit = requestData.get("limit");
+    /**
+     * Given a sql string, get sql result as Json
+     * @param sql
+     * @return sql result, format: Json
+     */
+    public static Result getSqlResult(String sql) {
         //query database
         SqlConn sqlWritter = new SqlConn(currentDatabase);
-        List<List<String>> res = sqlWritter.query(select, from, where, groupBy, orderBy, limit);
-        return ok(index.render(dbList, currentDatabase, res));
+        JsonNode res = sqlWritter.query(sql);
+        return ok(res);
     }
 
     // Javascript routing
@@ -89,6 +81,7 @@ public class Application extends Controller {
         return ok(Routes.javascriptRouter(
                 "jsRoutes",
                 routes.javascript.Application.getTableList(),
-                routes.javascript.Application.previewTb()));
+                routes.javascript.Application.previewTb(),
+                routes.javascript.Application.getSqlResult()));
     }
 }

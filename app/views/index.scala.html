@@ -32,78 +32,35 @@
                 </div>
                 <h3 class="sub-header">SQL Input</h3>
                 <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Write SQL here...">
+                    <input type="text" class="form-control" id="sqlInput" placeholder="Write SQL here...">
                     <span class="input-group-btn">
-                        <button class="btn btn-default" type="button">Go!</button>
+                        <button class="btn btn-default" type="button" id="submitSql">Go!</button>
                     </span>
-                </div>
-                <h3 class="sub-header">Graph Result</h3>
-                <div id="graphHolder">
-                    <h4>After run SQL, Graph Shows here!</h4>
-                </div>
-
-                <h3 class="sub-header">Ask Questions</h3>
-                <div id="questionHolder">
-                    <h4>Choose two bar in the graph, ask questions about them!</h4>
-                </div>
-
-                <h3 class="sub-header">Explanation</h3>
-                <div id="explanationHolder">
                     <div data-role="fieldcontain">
                         <script type="text/javascript">
                                 function updateTextInput(val) {
-                                    document.getElementById('textInput').value=val;
+                                    document.getElementById('textInput').value = val;
                                 }
                         </script>
                         <label for="slider">Diversity:</label>
                         <input type="range" name="slider" id="slider" value="0" min="0" max="1" step="0.01" onchange="updateTextInput(this.value);"/>
                         <input type="text" id="textInput" value="">
                     </div>
-
+                </div>
+                <h3 class="sub-header">SQL Result</h3>
+                <div>
+                    <h4>After run SQL, Graph Shows here!</h4>
+                    <div class="sqlresultDiv" id="sqlResultHolder"></div>
                 </div>
 
+                <h3 class="sub-header">Explanation</h3>
+                <div id="explanationHolder">
+
+                </div>
             </div>
+        </div>
     </div>
 
-    <form action="@routes.Application.query()" method="post">
-        <label>Select</label>
-        <input type="text" name="select"/>
-        <br/>
-        <label>From</label>
-        <input type="text" name="from" />
-        <br/>
-        <label>Where</label>
-        <input type="text" name="where"/>
-        <br/>
-        <label>Group By</label>
-        <input type="text" name="group"/>
-        <br/>
-        <label>Order By</label>
-        <input type="text" name="order"/>
-        <br/>
-        <label>Limit</label>
-        <input type="text" name="order"/>
-        <br/>
-        <button>Query</button>
-    </form>
-
-    @if(queryAns != null) {
-        <table border="1">
-            <tr>
-                @for(i <- 0 until queryAns.size) {
-                    <th>@queryAns.get(i).get(0)</th>
-
-                }
-            </tr>
-            @for(i <- 1 until queryAns.get(0).size) {
-                <tr>
-                    @for(j <- 0 until queryAns.size) {
-                        <td>@queryAns.get(j).get(i)</td>
-                    }
-                </tr>
-            }
-        </table>
-    }
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     @if(queryAns != null) {
         <script>

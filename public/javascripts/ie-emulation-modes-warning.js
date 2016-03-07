@@ -7,14 +7,16 @@
  * Licensed under the Creative Commons Attribution 3.0 Unported License. For
  * details, see https://creativecommons.org/licenses/by/3.0/.
  */
-// Intended to prevent false-positive bug reports about Bootstrap not working properly in old versions of IE due to folks testing using IE's unreliable emulation modes.
+
+// Intended to prevent false-positive bug reports about Bootstrap not working properly in old versions of IE
+// due to folks testing using IE's unreliable emulation modes.
 (function () {
   'use strict';
 
   function emulatedIEMajorVersion() {
-    var groups = /MSIE ([0-9.]+)/.exec(window.navigator.userAgent)
+    var groups = /MSIE ([0-9.]+)/.exec(window.navigator.userAgent);
     if (groups === null) {
-      return null
+      return null;
     }
     var ieVersionNum = parseInt(groups[1], 10)
     var ieMajorVersion = Math.floor(ieVersionNum)
