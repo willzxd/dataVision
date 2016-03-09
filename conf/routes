@@ -6,7 +6,7 @@
 GET     /                           controllers.Application.index()
 GET     /getTableList               controllers.Application.getTableList(dbname:String)
 GET     /preview                    controllers.Application.previewTb(tableName:String)
-GET     /query                      controllers.Application.getSqlResult(sql:String)
+GET     /query                      controllers.Application.getSqlResult(sql:String, tradeOff:Double)
 
 # GET     /assets/javascripts/routes  controllers.Application.jsRoutes()
 # Map static resources from the /public folder to the /assets URL path

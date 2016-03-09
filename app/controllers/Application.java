@@ -68,10 +68,10 @@ public class Application extends Controller {
      * @param sql
      * @return sql result, format: Json
      */
-    public static Result getSqlResult(String sql) {
+    public static Result getSqlResult(String sql, double tradeOff) {
         //query database
         SqlConn sqlWritter = new SqlConn(currentDatabase);
-        JsonNode res = sqlWritter.query(sql);
+        JsonNode res = sqlWritter.query(sql, tradeOff);
         return ok(res);
     }
 

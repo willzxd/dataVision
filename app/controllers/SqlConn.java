@@ -100,15 +100,29 @@ public class SqlConn {
             return preview;
         }
     }
-    public JsonNode query(String sql) {
+    public JsonNode query(String sql, double tradeOff) {
         Statement statement;
         JsonNode result = null;
         try {
             //execute query
             statement = conn.createStatement();
-            ResultSet resultSet = statement.executeQuery("select array_to_json(array_agg(row_to_json(t))) from (" + sql + ") t");
+            String normalSql = null;
+            int top = 5;
+            if (sql.contains("top")) {
+                 normalSql = sql.substring(0, sql.indexOf("top") + 1);
+                 top = Integer.parseInt(sql.substring(sql.indexOf("top") + 3).trim());
+            } else {
+                normalSql = sql;
+            }
+            System.out.println("top: " + top);
+            System.out.println("sql: " + normalSql);
+            ResultSet resultSet = statement.executeQuery("select array_to_json(array_agg(row_to_json(t))) from (" + normalSql + ") t");
             while (resultSet.next()) {
-                result = Json.parse(resultSet.getString(1));
+                //System.out.println(resultSet.getString(1));
+                String res = resultSet.getString(1);
+                result = ResultParser.diversityResult(res, top, tradeOff);
+                //result = Json.parse(resultSet.getString(1));
+
             }
             return result;
         }

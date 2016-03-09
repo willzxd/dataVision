@@ -36,6 +36,7 @@ ajaxGetSqlResult = {
 }
 function getSqlResult(){
     var sql = $("#sqlInput").val();
+    var diversity = $("#slider").val();
     console.debug(sql);
-    jsRoutes.controllers.Application.getSqlResult(sql).ajax(ajaxGetSqlResult);
+    jsRoutes.controllers.Application.getSqlResult(sql, diversity).ajax(ajaxGetSqlResult);
 }
