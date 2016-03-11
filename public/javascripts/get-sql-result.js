@@ -8,16 +8,39 @@ var successGetSqlResult = function (data) {
     if (data == null) {
         return errorGetSqlResult("data is null");
     }
-    var htmls = ['<table class="table table-striped">'];
+    var htmls = ['<table class="table">'];
     htmls.push('<thead><tr>');
-    for (var k in data[0]) {
-        htmls.push('<th>' + k + '</th>');
+    for (var i in data[0]) {
+        if (i.indexOf("diversity") >= 0) {
+            for (var j in data[0][i]) {
+                htmls.push('<th>' + j + '</th>');
+                console.log("schema: " + i);
+            }
+        }
     }
     htmls.push("</tr></thead>");
     for (var i = 0, L = data.length; i < L; i++) {
-        htmls.push("<tr>");
-        for (var k in data[i]) htmls.push('<td>' + data[i][k] + '</td>');
-        htmls.push('</tr>');
+        console.log(data[i]);
+        for (var j in data[i]) {
+            console.log(j);
+            if (j.indexOf("diversity") >= 0) {
+                htmls.push("<tr class='diversity'>");
+                for (var k in data[i][j]) {
+                    console.log(k);
+                    htmls.push('<td>' + data[i][j][k] + '</td>');
+                    console.log(data[i][j][k]);
+                }
+                htmls.push("</tr>");
+            } else {
+                for (var k = 0; k < data[i][j].length; k++) {
+                    console.log(data[i][j][k]);
+                    htmls.push("<tr class='" + j + "'>");
+                    for (var l in data[i][j][k])
+                        htmls.push('<td>' + data[i][j][k][l] + '</td>');
+                    htmls.push("</tr>");
+                }
+            }
+        }
     }
     htmls.push('</table>');
     $('#sqlResultHolder').html(htmls.join(''));

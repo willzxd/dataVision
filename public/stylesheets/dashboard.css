@@ -112,3 +112,7 @@ body {
   max-height: 400px;
   overflow-y: scroll;
 }
+
+.diversity {
+  background: #afd9ee;
+}

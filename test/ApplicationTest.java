@@ -36,24 +36,8 @@ public class ApplicationTest {
     }
 
     @Test
-    public void getSchema() {
-        SqlConn s = new SqlConn("will");
-        List<String> tbList = s.readTableList();
-        assertNotNull(tbList);
-        for(String str: tbList) {
-            System.out.println(str);
-        }
-    }
+    public void resultParseTest() {
 
-    @Test
-    public void getQueryAns() {
-        SqlConn s = new SqlConn("will");
-        List<List<String>> res = s.query("count(pubkey)", "article", "year < 1970", "year", null, null);
-        for (List<String> list: res) {
-            for (String str: list) {
-                System.out.println(str);
-            }
-        }
     }
 
 

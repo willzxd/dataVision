@@ -8,30 +8,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import play.api.libs.json.Json;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.lang.reflect.Array;
+import java.util.*;
 
 /**
  * Created by will on 3/7/16.
  */
 public class ResultParser {
 
-    public double relevanceFunction() {
-
-        return 0;
-    }
-
-    public double diversityFunction() {
-        return 0;
-    }
-
-    public double coverageFunction() {
-        return 0;
-    }
 
     /**
-     * Implement swap method
+     * Implement swap method for diversity
      * @param resultSet
      * @param k
      * @param tradeOff
@@ -41,35 +28,68 @@ public class ResultParser {
         try {
             JsonNode root = mapper.readTree(resultSet);
             //use a List of size k
+            //init the set
             List<JsonNode> resultList = new ArrayList<JsonNode>();
-            List<Integer> resultIndex = new ArrayList<Integer>();
+            List<JsonNode> candidateList = new ArrayList<>();
             double score = 0;
             int i = 0;
             int size = resultList.size() - 1;
             while (resultList.size() < k) {
                 resultList.add(root.get(i));
-                resultIndex.add(size - i);
                 i++;
             }
-            score = computeScore(resultList, resultIndex, k, tradeOff);
+            score = computeScore(resultList, k, tradeOff);
+            //traverse the rest tuples
             while (i < root.size()) {
                 JsonNode candidate = root.get(i);
                 i++;
                 for (int j = 0; j < resultList.size(); j++) {
-                    JsonNode waitingList = resultList.get(j);
-                    int waitingIndex = resultIndex.get(j);
+                    JsonNode currentNode = resultList.get(j);
                     resultList.set(j, candidate);
-                    resultIndex.set(j, size - i);
-                    double candidateScore = computeScore(resultList, resultIndex, k, tradeOff);
+                    double candidateScore = computeScore(resultList, k, tradeOff);
                     if (candidateScore < score) {
-                        resultList.set(j, waitingList);
-                        resultIndex.set(j, waitingIndex);
+                        resultList.set(j, currentNode);
+                        //add the candiate to candidateList
                     } else {
                         score = candidateScore;
                     }
                 }
             }
-            String resultStr = mapper.writeValueAsString(resultList);
+            for (JsonNode node: root) {
+                if (!resultList.contains(node)) {
+                    candidateList.add(node);
+                }
+            }
+            //System.out.println("size of candidateList" + candidateList.size());
+            //add coverage
+            Map<JsonNode, ArrayNode> finalResultMap = new HashMap<>();
+            for (JsonNode node: resultList) {
+                finalResultMap.put(node, mapper.createArrayNode());
+            }
+            //System.out.println("Init Map");
+            for (int p = 0; p < candidateList.size(); p++) {
+                double distance = Double.MAX_VALUE;
+                JsonNode parent = null;
+                for (JsonNode node: resultList) {
+                    double currentDis = computeDistance(node, candidateList.get(p));
+                    if (distance > currentDis) {
+                        distance = currentDis;
+                        parent = node;
+                    }
+                }
+                //System.out.println(candidateList.get(p).toString());
+                finalResultMap.get(parent).add(candidateList.get(p));
+            }
+            //System.out.println("Map built.");
+            ArrayNode finalResult = mapper.createArrayNode();
+            for (int p = 0; p < resultList.size(); p++) {
+                ObjectNode current = mapper.createObjectNode();
+                current.put("diversity_" + p, resultList.get(p));
+                current.put("coverage_" + p, finalResultMap.get(resultList.get(p)));
+                finalResult.add(current);
+            }
+            //System.out.println("final build.");
+            String resultStr = mapper.writeValueAsString(finalResult);
             System.out.println(resultStr);
             JsonNode result = mapper.readTree(resultStr);
             return result;
@@ -82,7 +102,22 @@ public class ResultParser {
         return null;
     }
 
-    private static double computeScore(List<JsonNode> nodeList, List<Integer> nodeIndex, int k, double tradeOff) {
+    private static double computeDistance(JsonNode a, JsonNode b) {
+        if (a == null || b == null) {
+            return Double.MAX_VALUE;
+        }
+        double sum = 0.0;
+        Iterator<String> it = a.fieldNames();
+        while (it.hasNext()) {
+            String fieldName = it.next().toString();
+            if (!fieldName.equals("val")) {
+                sum += Math.abs(a.get(fieldName).asDouble(0) - b.asDouble(0));
+            }
+        }
+        return sum;
+
+    }
+    private static double computeScore(List<JsonNode> nodeList, int k, double tradeOff) {
         if (nodeList == null || nodeList.size() == 0) {
             return 0;
         }
