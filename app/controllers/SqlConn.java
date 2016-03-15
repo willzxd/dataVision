@@ -120,7 +120,7 @@ public class SqlConn {
             while (resultSet.next()) {
                 //System.out.println(resultSet.getString(1));
                 String res = resultSet.getString(1);
-                result = ResultParser.diversityResult(res, top, tradeOff);
+                result = ResultParser.diversityResultWithGMC(res, top, tradeOff);
                 //result = Json.parse(resultSet.getString(1));
 
             }
