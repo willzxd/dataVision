@@ -9,7 +9,7 @@ $(document).ready(function() {
 
 var successFn = function(data) {
     var oldTableList = document.getElementById("tableList");
-    $("#tableList li").remove()
+    $("#tableList li").remove();
     for(var i in data) {
         for (var key in data[i]) {
             $("#tableList").append("<li class='list-group-item previewable'" + "id='" + data[i][key] +"'>" + data[i][key] + "</li>");

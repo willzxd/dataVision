@@ -116,3 +116,13 @@ body {
 .diversity {
   background: #afd9ee;
 }
+
+.arrow {
+  background:transparent url(../images/arrows.png) no-repeat scroll 0px -16px;
+  width:16px; height:16px;
+  display:block;
+}
+
+.up {
+  background-position:0px 0px;
+}
