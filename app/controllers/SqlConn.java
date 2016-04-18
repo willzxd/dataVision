@@ -1,5 +1,6 @@
 package controllers;
 
+import algorithm.FindAnswer;
 import com.fasterxml.jackson.databind.JsonNode;
 import play.libs.Json;
 
@@ -100,6 +101,13 @@ public class SqlConn {
             return preview;
         }
     }
+
+    /**
+     * (Old version) Only consider the diversity and relevance
+     * @param sql
+     * @param tradeOff
+     * @return
+     */
     public JsonNode query(String sql, double tradeOff) {
         Statement statement;
         JsonNode result = null;
@@ -123,6 +131,45 @@ public class SqlConn {
                 result = ResultParser.diversityResultWithGMC(res, top, tradeOff);
                 //result = Json.parse(resultSet.getString(1));
 
+            }
+            return result;
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+            return result;
+        }
+    }
+
+    public JsonNode queryTopK(String sql) {
+        Statement statement;
+        JsonNode result = null;
+        try {
+            //execute query
+            statement = conn.createStatement();
+            String normalSql = null;
+            //default topK, coverage, and distance
+            int topK = 8;
+            int coverage = 40;
+            int distance = 3;
+            if (sql.contains("top")) {
+                normalSql = sql.substring(0, sql.indexOf("top") + 1);
+                topK = Integer.parseInt(sql.substring(sql.indexOf("top") + 3).trim());
+            } else {
+                normalSql = sql;
+            }
+            //System.out.println("top: " + top);
+            //System.out.println("sql: " + normalSql);
+            ResultSet resultSet = statement.executeQuery("select array_to_json(array_agg(row_to_json(t))) from (" + normalSql + ") t");
+            while (resultSet.next()) {
+                //System.out.println(resultSet.getString(1));
+                String res = resultSet.getString(1);
+                System.out.println("Original result: " + res);
+                FindAnswer finder = new FindAnswer();
+                result = finder.findclustersBT(res, topK, coverage, distance);
+                //result = finder.findclustersGreedy(res, topK, coverage, distance);
+                //result = ResultParser.diversityResultWithGMC(res, top, tradeOff);
+                //result = Json.parse(resultSet.getString(1));
+                //k=10,coverage=20,distance=4, greedy25.89022907761008, bt34.59936431569112(not to bad)
             }
             return result;
         }

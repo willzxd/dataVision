@@ -71,7 +71,7 @@ public class Application extends Controller {
     public static Result getSqlResult(String sql, double tradeOff) {
         //query database
         SqlConn sqlWritter = new SqlConn(currentDatabase);
-        JsonNode res = sqlWritter.query(sql, tradeOff);
+        JsonNode res = sqlWritter.queryTopK(sql);
         return ok(res);
     }
 

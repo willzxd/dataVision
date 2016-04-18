@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * This class is used for KMedoids algorithm
  * Created by will on 3/17/16.
+ *
  */
 public class Cluster {
     private int id;
