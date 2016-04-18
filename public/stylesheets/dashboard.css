@@ -107,6 +107,7 @@ body {
 /*
  * content div to show sql result
  */
+
 .sqlresultDiv {
   min-height: 0px;
   max-height: 400px;

@@ -2,6 +2,7 @@ package controllers;
 
 import algorithm.FindAnswer;
 import com.fasterxml.jackson.databind.JsonNode;
+import play.Logger;
 import play.libs.Json;
 
 import java.sql.*;
@@ -16,6 +17,9 @@ public class SqlConn {
     //private String database;
     public static String USER = "will";
     public static String PASSWORD = "will";
+    public static int BRUTE_FORCE = 0;
+    public static int TOP_DOWN = 1;
+
 
     public SqlConn(String database) {
         try {
@@ -140,35 +144,59 @@ public class SqlConn {
         }
     }
 
-    public JsonNode queryTopK(String sql) {
+    public JsonNode queryTopK(String sql, int topK, int coverage, int distance, String algo) {
         Statement statement;
         JsonNode result = null;
         try {
             //execute query
             statement = conn.createStatement();
             String normalSql = null;
-            //default topK, coverage, and distance
-            int topK = 8;
-            int coverage = 40;
-            int distance = 3;
-            if (sql.contains("top")) {
-                normalSql = sql.substring(0, sql.indexOf("top") + 1);
-                topK = Integer.parseInt(sql.substring(sql.indexOf("top") + 3).trim());
+            //find topK, coverage, and distance
+            int topKInState = -1;
+            int coverageInState = -1;
+            int distanceInState = -1;
+            System.out.println(algo);
+            int algorithm = algo.equals("BF")? BRUTE_FORCE : TOP_DOWN;
+            if (sql.contains("coverage") && sql.contains("distance") && sql.contains("using")) {
+                //find topK, coverage and distance in statement
+                normalSql = sql.substring(0, sql.indexOf("limit"));
+                topKInState = Integer.parseInt(sql.substring(sql.indexOf("limit") + 6, sql.indexOf("coverage")).trim());
+                coverageInState = Integer.parseInt(sql.substring(sql.indexOf("coverage") + 9, sql.indexOf("distance")).trim());
+                distanceInState = Integer.parseInt(sql.substring(sql.indexOf("distance") + 9, sql.indexOf("using")).trim());
+                if (sql.contains("using BT")) {
+                    algorithm = BRUTE_FORCE;
+                } else {
+                    algorithm = TOP_DOWN;
+                }
+                if (topKInState != -1 && topK != topKInState) {
+                    topK = topKInState;
+                }
+                if (coverageInState != -1 && coverage != coverageInState) {
+                    coverage = coverageInState;
+                }
+                if (distanceInState != -1 && distance != distanceInState) {
+                    distance = distanceInState;
+                }
             } else {
                 normalSql = sql;
             }
-            //System.out.println("top: " + top);
-            //System.out.println("sql: " + normalSql);
+
+            Logger.info("Normal SQL:" + normalSql);
+            Logger.info("k=" + topK + " L=" + coverage + " D=" + distance);
             ResultSet resultSet = statement.executeQuery("select array_to_json(array_agg(row_to_json(t))) from (" + normalSql + ") t");
             while (resultSet.next()) {
                 //System.out.println(resultSet.getString(1));
                 String res = resultSet.getString(1);
                 System.out.println("Original result: " + res);
                 FindAnswer finder = new FindAnswer();
-                result = finder.findclustersBT(res, topK, coverage, distance);
-                //result = finder.findclustersGreedy(res, topK, coverage, distance);
+                if (algorithm == BRUTE_FORCE) {
+                    result = finder.findclustersBT(res, topK, coverage, distance);
+                } else if (algorithm == TOP_DOWN) {
+                    result = finder.findclustersGreedy(res, topK, coverage, distance);
+                } else {
+                    result = Json.parse(res);
+                }
                 //result = ResultParser.diversityResultWithGMC(res, top, tradeOff);
-                //result = Json.parse(resultSet.getString(1));
                 //k=10,coverage=20,distance=4, greedy25.89022907761008, bt34.59936431569112(not to bad)
             }
             return result;

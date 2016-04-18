@@ -1,6 +1,6 @@
 @(dbList: java.util.List[String])(dbname: String)(queryAns: java.util.List[java.util.List[String]])
 
-@main("Welcome to DataExplorer") {
+@main("Welcome to ClusterDB") {
 
     <div class="container-fluid">
         <div class="row">
@@ -27,8 +27,9 @@
 
             <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
                 <h3 class="sub-header">Table Preview</h3>
-                <div id="previewTableHolder">
+                <div>
                     <h4>Choose a database, preview table schema and contents here!</h4>
+                    <div class="sqlresultDiv" id="previewTableHolder"></div>
                 </div>
                 <h3 class="sub-header">SQL Input</h3>
                 <div class="input-group">
@@ -46,12 +47,14 @@
                     </script>
                     <!--label for="slider">Diversity:</label-->
                         <!--input type="range" name="slider" id="slider" value="0" min="0" max="1" step="0.01" onchange="updateTextInput(this.value);"/-->
-                        <label for="k">Number of Output Cluster</label>
-                        <input type="number" id="k" value="">
-                        <label for="k">Original Tuples Covered</label>
-                        <input type="number" id="coverage" value="10">
-                        <label for="k">Distance between clusters</label>
-                        <input type="number" id="distance" value="2">
+                        <label for="k">#Cluster</label>
+                        <input type="number" id="topk" value="5">
+                        <label for="k">Coverage</label>
+                        <input type="number" id="cov" value="20">
+                        <label for="k">Distance</label>
+                        <input type="number" id="dist" value="3">
+                        <label for="k">Algorithm</label>
+                        <input type="text" id="algo" value="BF">
                     </div>
                 </div>
                 <h3 class="sub-header">SQL Result</h3>
@@ -62,106 +65,5 @@
             </div>
         </div>
     </div>
-
-    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-    @if(queryAns != null) {
-        <script>
-                //difine data for visi
-                var dataset = @queryAns.get(0);
-                var dataset2 = @queryAns.get(1);
-
-                //SVG size
-                var width = 1200;
-                var height = 400;
-
-                //add a SVG in body
-                var svg = d3.select("body")
-                        .append("svg")
-                        .attr("width", width)
-                        .attr("height", height);
-
-                //SVG pardding
-                var padding = {left:60, right:30, top:20, bottom:20};
-
-                //x scale
-                var xScale = d3.scale.ordinal()
-                        .domain(d3.range(dataset.length))
-                        .rangeRoundBands([0, width - padding.left - padding.right]);
-
-                //y scale
-                var yScale = d3.scale.linear()
-                        .domain([0,d3.max(dataset)])
-                        .range([height - padding.top - padding.bottom, 0]);
-
-                //define xAxis
-                var xAxis = d3.svg.axis()
-                        .scale(xScale)
-                        .orient("bottom");
-
-                //define yAxis
-                var yAxis = d3.svg.axis()
-                        .scale(yScale)
-                        .orient("left");
-
-                //rectangle padding
-                var rectPadding = 4;
-
-                //add rectangle
-                var rects = svg.selectAll(".MyRect")
-                        .data(dataset)
-                        .enter()
-                        .append("rect")
-                        .attr("class","MyRect")
-                        .attr("transform","translate(" + padding.left + "," + padding.top + ")")
-                        .attr("x", function(d,i){
-                            return xScale(i) + rectPadding/2;
-                        } )
-                        .attr("y",function(d){
-                            return yScale(d);
-                        })
-                        .attr("width", xScale.rangeBand() - rectPadding )
-                        .attr("height", function(d){
-                            return height - padding.top - padding.bottom - yScale(d);
-                        });
-
-                //add texts
-                var texts = svg.selectAll(".MyText")
-                        .data(dataset)
-                        .enter()
-                        .append("text")
-                        .attr("class","MyText")
-                        .attr("transform","translate(" + padding.left + "," + padding.top + ")")
-                        .attr("x", function(d,i){
-                            return xScale(i) + rectPadding/2;
-                        } )
-                        .attr("y",function(d){
-                            return yScale(d);
-                        })
-                        .attr("dx",function(){
-                            return (xScale.rangeBand() - rectPadding)/2;
-                        })
-                        .attr("dy",function(d){
-                            return 20;
-                        })
-                        .text(function(d){
-                            return d;
-                        });
-
-                //add xAxis
-                svg.append("g")
-                        .attr("class","axis")
-                        .attr("transform","translate(" + padding.left + "," + (height - padding.bottom) + ")")
-                        .call(xAxis);
-
-                //add yAxis
-                svg.append("g")
-                        .attr("class","axis")
-                        .attr("transform","translate(" + padding.left + "," + padding.top + ")")
-                        .call(yAxis);
-
-        </script>
-
-    }
-
 
 }

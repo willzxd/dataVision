@@ -91,6 +91,10 @@ public class FindAnswer {
                     }
                 }
             }
+            if (attributeList.size() < distance) {
+                Logger.info("Decreasing distance D will get better result!");
+                distance = attributeList.size();
+            }
 
             //Test attributeList
 //            message.append("Attribute List: ");
@@ -445,9 +449,9 @@ public class FindAnswer {
         while (!currentLayer.isEmpty()) {
 
             Logger.info("A new split stage begin");
-            for (ClusterNode cluster: currentLayer) {
-                Logger.info("The cluster in the stage" + cluster.getContent().toString());
-            }
+//            for (ClusterNode cluster: currentLayer) {
+//                Logger.info("The cluster in the stage" + cluster.getContent().toString());
+//            }
 
             int size = currentLayer.size();
             int count = size;
@@ -570,6 +574,12 @@ public class FindAnswer {
 //            System.out.println("After sorted answer cluster:" + cluster.getContent().toString());
 //        }
         long endT = System.currentTimeMillis();
+        if (answer.size() < (k * 0.8)) {
+            Logger.info("Increasing k may get better result");
+        }
+        if (distance < 2) {
+            Logger.info("Increasing D may get better result.");
+        }
         result = ConstructAnswerJsonStr(answer);
         double score = 0;
         for (ClusterNode cluster: answer) {

@@ -64,14 +64,17 @@ public class Application extends Controller {
     }
 
     /**
-     * Given a sql string, get sql result as Json
+     *
      * @param sql
-     * @return sql result, format: Json
+     * @param topk
+     * @param cov
+     * @param dist
+     * @return
      */
-    public static Result getSqlResult(String sql, double tradeOff) {
+    public static Result getSqlResult(String sql, int topk, int cov, int dist, String algo) {
         //query database
         SqlConn sqlWritter = new SqlConn(currentDatabase);
-        JsonNode res = sqlWritter.queryTopK(sql);
+        JsonNode res = sqlWritter.queryTopK(sql, topk, cov, dist, algo);
         return ok(res);
     }
 
