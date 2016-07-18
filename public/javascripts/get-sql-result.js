@@ -74,10 +74,14 @@ function getSqlResult(){
     var sql = $("#sqlInput").val();
     var diversity = 1;
     //var diversity = $("#slider").val();
+    //para k
     var topk = $("#topk").val();
+    //para L
     var cov = $("#cov").val();
+    //para D
     var dist = $("#dist").val();
-    var algo = $("#algo").val()
+    //para algorithm
+    var algo = $("#algo").val();
     console.debug(sql);
     jsRoutes.controllers.Application.getSqlResult(sql, topk, cov, dist, algo).ajax(ajaxGetSqlResult);
 }

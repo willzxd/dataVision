@@ -17,8 +17,17 @@ public class SqlConn {
     //private String database;
     public static String USER = "will";
     public static String PASSWORD = "will";
-    public static int BRUTE_FORCE = 0;
-    public static int TOP_DOWN = 1;
+    public final static int BRUTE_FORCE = 0;
+    //public static int TOP_DOWN = 1;
+    public final static int  GREEDY = 1;
+    public final static int GREEDY_RANDOM = 2;
+    public final static int GREEDY_INDIV = 3;
+    public final static int GREADY_FIXED_K_NUM = 4;
+    public final static int GREEDY_FIXED_K_WEIGHT = 5;
+    public final static int GREEDY_FIXED_K_AVERAGE = 6;
+    public final static int GREEDY_FIXED_L_NUM = 7;
+    public final static int GREEDY_FIXED_L_WEIGHT = 8;
+    public final static int GREEDY_FIXED_L_AVERAGE = 9;
 
 
     public SqlConn(String database) {
@@ -152,34 +161,43 @@ public class SqlConn {
             statement = conn.createStatement();
             String normalSql = null;
             //find topK, coverage, and distance
-            int topKInState = -1;
-            int coverageInState = -1;
-            int distanceInState = -1;
+//            int topKInState = -1;
+//            int coverageInState = -1;
+//            int distanceInState = -1;
             System.out.println(algo);
-            int algorithm = algo.equals("BF")? BRUTE_FORCE : TOP_DOWN;
-            if (sql.contains("coverage") && sql.contains("distance") && sql.contains("using")) {
-                //find topK, coverage and distance in statement
-                normalSql = sql.substring(0, sql.indexOf("limit"));
-                topKInState = Integer.parseInt(sql.substring(sql.indexOf("limit") + 6, sql.indexOf("coverage")).trim());
-                coverageInState = Integer.parseInt(sql.substring(sql.indexOf("coverage") + 9, sql.indexOf("distance")).trim());
-                distanceInState = Integer.parseInt(sql.substring(sql.indexOf("distance") + 9, sql.indexOf("using")).trim());
-                if (sql.contains("using BT")) {
-                    algorithm = BRUTE_FORCE;
-                } else {
-                    algorithm = TOP_DOWN;
-                }
-                if (topKInState != -1 && topK != topKInState) {
-                    topK = topKInState;
-                }
-                if (coverageInState != -1 && coverage != coverageInState) {
-                    coverage = coverageInState;
-                }
-                if (distanceInState != -1 && distance != distanceInState) {
-                    distance = distanceInState;
-                }
+            //For experiment purpose, we can use 1 - 9 select an algorithm
+            //TODO: after the experiment, we can write logic here to select the best algorithm for specific SQL query
+            int algorithm = Integer.parseInt(algo);
+            //For experiment purpose, the SQL for outputing clusters should have "limit".
+            if(sql.contains("limit")) {
+                normalSql = sql.substring(0, sql.indexOf("limit")).trim();
             } else {
                 normalSql = sql;
             }
+
+//            int algorithm = algo.equals("BF")? BRUTE_FORCE : TOP_DOWN;
+//            if (sql.contains("coverage") && sql.contains("using")) {
+//                //find topK, coverage and distance in statement
+//                normalSql = sql.substring(0, sql.indexOf("limit"));
+//                topKInState = Integer.parseInt(sql.substring(sql.indexOf("limit") + 6, sql.indexOf("coverage")).trim());
+//                coverageInState = Integer.parseInt(sql.substring(sql.indexOf("coverage") + 9, sql.indexOf("distance")).trim());
+//                if(sql.contains("distance")) {
+//                    distanceInState = Integer.parseInt(sql.substring(sql.indexOf("distance") + 9, sql.indexOf("using")).trim());
+//                }
+//                //If the parameters in SQL is conflict with the parameters in explicit input boxes,
+//                //We use the parameters in boxes.
+//                if (topKInState != -1 && topK != topKInState) {
+//                    topK = topKInState;
+//                }
+//                if (coverageInState != -1 && coverage != coverageInState) {
+//                    coverage = coverageInState;
+//                }
+//                if (distanceInState != -1 && distance != distanceInState) {
+//                    distance = distanceInState;
+//                }
+//            } else {
+//                normalSql = sql;
+//            }
 
             Logger.info("Normal SQL:" + normalSql);
             Logger.info("k=" + topK + " L=" + coverage + " D=" + distance);
@@ -189,13 +207,37 @@ public class SqlConn {
                 String res = resultSet.getString(1);
                 System.out.println("Original result: " + res);
                 FindAnswer finder = new FindAnswer();
-                if (algorithm == BRUTE_FORCE) {
-                    result = finder.findclustersBT(res, topK, coverage, distance);
-                } else if (algorithm == TOP_DOWN) {
-                    result = finder.findclustersGreedy(res, topK, coverage, distance);
-                } else {
-                    result = Json.parse(res);
+                switch(algorithm) {
+                    case BRUTE_FORCE: result = finder.findclustersBT(res, topK, coverage, distance);
+                        break;
+                    case GREEDY: result = finder.findclustersGreedy(res, topK, coverage, distance);
+                        break;
+                    case GREEDY_RANDOM: result = finder.findclustersGreedyRandom(res, topK, coverage, distance);
+                        break;
+                    case GREEDY_INDIV: result = finder.findclustersGreedyIndiv(res, topK, coverage, distance);
+                        break;
+                    case GREADY_FIXED_K_NUM: result = finder.findclustersGreedyFiexdKNum(res, topK, coverage, distance);
+                        break;
+                    case GREEDY_FIXED_K_WEIGHT: result = finder.findclustersGreedyFixedKWeight(res, topK, coverage, distance);
+                        break;
+                    case GREEDY_FIXED_K_AVERAGE: result = finder.findclustersGreedyFixedKAverage(res, topK, coverage, distance);
+                        break;
+                    case GREEDY_FIXED_L_NUM: result = finder.findclustersGreedyFixedLNum(res, topK, coverage, distance);
+                        break;
+                    case GREEDY_FIXED_L_WEIGHT: result = finder.findclustersGreedyFixedLWeight(res, topK, coverage, distance);
+                        break;
+                    case GREEDY_FIXED_L_AVERAGE: result = finder.findclustersGreedyFixedLAverage(res, topK, coverage, distance);
+                        break;
+                    default: result = Json.parse(res);
+                        break;
                 }
+//                if (algorithm == BRUTE_FORCE) {
+//                    result = finder.findclustersBT(res, topK, coverage, distance);
+//                } else if (algorithm == TOP_DOWN) {
+//                    result = finder.findclustersGreedy(res, topK, coverage, distance);
+//                } else {
+//                    result = Json.parse(res);
+//                }
                 //result = ResultParser.diversityResultWithGMC(res, top, tradeOff);
                 //k=10,coverage=20,distance=4, greedy25.89022907761008, bt34.59936431569112(not to bad)
             }

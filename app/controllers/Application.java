@@ -75,6 +75,7 @@ public class Application extends Controller {
         //query database
         SqlConn sqlWritter = new SqlConn(currentDatabase);
         JsonNode res = sqlWritter.queryTopK(sql, topk, cov, dist, algo);
+        sqlWritter.closeCon();
         return ok(res);
     }
 

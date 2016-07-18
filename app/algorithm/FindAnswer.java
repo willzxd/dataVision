@@ -420,178 +420,278 @@ public class FindAnswer {
      * @param distance
      * @return
      */
-    public JsonNode findclustersGreedy(String jsonStr, int k, int coverage, int distance) {
-        init(jsonStr, k, coverage, distance);
-        long startT = System.currentTimeMillis();
-        JsonNode result = null;
-
-        //find the cluster that cover all tuples, begin from this root
-        Queue<ClusterNode> currentLayer = new LinkedList<ClusterNode>();
-        for (ClusterNode cluster: clusterCollection) {
-            //Logger.info("cluster is " + cluster.getContent().toString());
-            if (cluster.getTupleList().size() == coveredTuples.size()) {
-                currentLayer.add(cluster);
-                break;
-            }
-        }
-        Logger.info("The cluster we will start from is " + currentLayer.peek().getContent().toString());
-        //start a new list presented next layer
-        //every time we split a cluster as two new clusters
-            //check whether the new clusters, dominated by others in the current layer
-            //check whether the new clusters, conflict with distance by the next layer
-            //store them in the next layer
-            //if meet the k, stop,
-            //  or finish split the previous layer, loop
-        for (ClusterNode cluster: currentLayer) {
-            Logger.info("cluster in currentLayer" + cluster.getContent().toString());
-        }
-        Set<ClusterNode> visited = new HashSet<ClusterNode>();
-        while (!currentLayer.isEmpty()) {
-
-            Logger.info("A new split stage begin");
-//            for (ClusterNode cluster: currentLayer) {
-//                Logger.info("The cluster in the stage" + cluster.getContent().toString());
+//    public JsonNode findclustersGreedy(String jsonStr, int k, int coverage, int distance) {
+//        init(jsonStr, k, coverage, distance);
+//        long startT = System.currentTimeMillis();
+//        JsonNode result = null;
+//
+//        //find the cluster that cover all tuples, begin from this root
+//        Queue<ClusterNode> currentLayer = new LinkedList<ClusterNode>();
+//        for (ClusterNode cluster: clusterCollection) {
+//            //Logger.info("cluster is " + cluster.getContent().toString());
+//            if (cluster.getTupleList().size() == coveredTuples.size()) {
+//                currentLayer.add(cluster);
+//                break;
 //            }
-
-            int size = currentLayer.size();
-            int count = size;
-            Queue<ClusterNode> nextLayer = new LinkedList<ClusterNode>();
-            while (count > 0) {
-                ClusterNode clusterNeedSplit = currentLayer.poll();
-                Logger.info("The current cluster needs to split: " + clusterNeedSplit.getContent().toString());
-                //if it is a single cluster, do nothing
-                if (clusterNeedSplit.getTupleList().size() == 1) {
-                    nextLayer.add(clusterNeedSplit);
-                    count--;
-                    continue;
-                }
-                //A List that store the splited children
-                List<ClusterNode> children = new ArrayList<ClusterNode>();
-                //The tuple set that we need to cover
-                Set<TupleNode> tuples = new HashSet<>(clusterNeedSplit.getTupleList());
-                //The cluster set of all candiates
-                Set<ClusterNode> dominatedList = new HashSet<>(clusterNeedSplit.getDominateList());
-                //if covered everything or do not have enough space to cover everything, stop
-                while (tuples.size() != 0 && k > children.size() + nextLayer.size() + currentLayer.size()) {
-                    Logger.info("The number of tuples need to be covered is " + tuples.size());
-//                    for (TupleNode tuple: tuples) {
-//                        Logger.info(tuple.getContent().toString());
-//                    }
-
-                    //A heap help find valid candidate which covers as many tuples as possible
-                    PriorityQueue<ClusterNode> childrenHeap = new PriorityQueue<>(11, new Comparator<ClusterNode>() {
-                        @Override
-                        public int compare(ClusterNode o1, ClusterNode o2) {
-                            if (o1 == null && o2 == null || (o1.getTupleList().size() == o2.getTupleList().size())) {
-                                return 0;
-                            } else if (o1 == null || o1.getTupleList().size() < o2.getTupleList().size()) {
-                                return 1;
-                            } else {
-                                return -1;
-                            }
-                        }
-                    });
-
-                    //Iterate every candidate cluster
-                    for (ClusterNode child: dominatedList) {
-                        //flag
-                        boolean isValid = true;
-                        //if it is same as the cluster needs to split or
-                        //it is same as some cluster that already visited
-                        //it is same as cluster that already in the next layer, just continue
-                        if (child == clusterNeedSplit || nextLayer.contains(child) || visited.contains(child)) {
-                            continue;
-                        }
-                        //check domination/distance between other clusters
-                        for (ClusterNode cluster : currentLayer) {
-                            if (child.getClusterList().contains(cluster)) {
-                                isValid = false;
-                                break;
-                            }
-                        }
-                        for (ClusterNode cluster : children) {
-                            if (child.getClusterList().contains(cluster)) {
-                                isValid = false;
-                                break;
-                            }
-                        }
-                        for (ClusterNode cluster : nextLayer) {
-                            if (child.getClusterList().contains(cluster)) {
-                                isValid = false;
-                                break;
-                            }
-                        }
-                        if (isValid) {
-                            childrenHeap.add(child);
-                        }
-                    }
-                    if (childrenHeap.size() != 0 && k > children.size() + nextLayer.size() + currentLayer.size()) {
-                        ClusterNode child = childrenHeap.poll();
-                        //Logger.info("child is null? " + (child == null));
-                        children.add(child);
-                        Logger.info("A child add to children list: " + child.getContent().toString());
-                        for (TupleNode tuple : child.getTupleList()) {
-                            //Logger.info(tuple.getContent().toString());
-                            tuples.remove(tuple);
-                            //here we update the dominatedList to make sure there are no overlap between child
-                            dominatedList.removeAll(tuple.getClusterList());
-                        }
-                        Logger.info("The rest number of tuples need to be covered is " + tuples.size());
-                        Logger.info("The children size is " + children.size() + "\nThe nextLayer size is "
-                                + nextLayer.size());
-                    } else {
-                        break;
-                    }
-                }
-                //If tuples is empty, means the children can be added to the next step
-                if (tuples.size() == 0) {
-                    //add children to next layer
-                    nextLayer.addAll(children);
-                    visited.add(clusterNeedSplit);
-                    Logger.info("Cluster \n" + clusterNeedSplit.getContent().toString() + "\nhas been added to visited list.");
-                } else {
-                    nextLayer.add(clusterNeedSplit);
-                    Logger.info("Do not have enough space to split " + clusterNeedSplit.getContent().toString());
-                }
-                count--;
-            }
-            if (size == nextLayer.size()) {
-                answer = new ArrayList<>(nextLayer);
-                break;
-            } else {
-                currentLayer = nextLayer;
-                Logger.info("The nextLayer is ready!");
-//                for (ClusterNode cluster: nextLayer) {
-//                    System.out.println(cluster.getContent().toString());
+//        }
+//        Logger.info("The cluster we will start from is " + currentLayer.peek().getContent().toString());
+//        //start a new list presented next layer
+//        //every time we split a cluster as two new clusters
+//            //check whether the new clusters, dominated by others in the current layer
+//            //check whether the new clusters, conflict with distance by the next layer
+//            //store them in the next layer
+//            //if meet the k, stop,
+//            //  or finish split the previous layer, loop
+//        for (ClusterNode cluster: currentLayer) {
+//            Logger.info("cluster in currentLayer" + cluster.getContent().toString());
+//        }
+//        Set<ClusterNode> visited = new HashSet<ClusterNode>();
+//        while (!currentLayer.isEmpty()) {
+//
+//            Logger.info("A new split stage begin");
+////            for (ClusterNode cluster: currentLayer) {
+////                Logger.info("The cluster in the stage" + cluster.getContent().toString());
+////            }
+//
+//            int size = currentLayer.size();
+//            int count = size;
+//            Queue<ClusterNode> nextLayer = new LinkedList<ClusterNode>();
+//            while (count > 0) {
+//                ClusterNode clusterNeedSplit = currentLayer.poll();
+//                Logger.info("The current cluster needs to split: " + clusterNeedSplit.getContent().toString());
+//                //if it is a single cluster, do nothing
+//                if (clusterNeedSplit.getTupleList().size() == 1) {
+//                    nextLayer.add(clusterNeedSplit);
+//                    count--;
+//                    continue;
 //                }
-            }
-        }
-//        for (ClusterNode cluster: answer) {
-//            System.out.println("answer cluster:" + cluster.getContent().toString());
+//                //A List that store the splited children
+//                List<ClusterNode> children = new ArrayList<ClusterNode>();
+//                //The tuple set that we need to cover
+//                Set<TupleNode> tuples = new HashSet<>(clusterNeedSplit.getTupleList());
+//                //The cluster set of all candiates
+//                Set<ClusterNode> dominatedList = new HashSet<>(clusterNeedSplit.getDominateList());
+//                //if covered everything or do not have enough space to cover everything, stop
+//                while (tuples.size() != 0 && k > children.size() + nextLayer.size() + currentLayer.size()) {
+//                    Logger.info("The number of tuples need to be covered is " + tuples.size());
+////                    for (TupleNode tuple: tuples) {
+////                        Logger.info(tuple.getContent().toString());
+////                    }
+//
+//                    //A heap help find valid candidate which covers as many tuples as possible
+//                    PriorityQueue<ClusterNode> childrenHeap = new PriorityQueue<>(11, new Comparator<ClusterNode>() {
+//                        @Override
+//                        public int compare(ClusterNode o1, ClusterNode o2) {
+//                            if (o1 == null && o2 == null || (o1.getTupleList().size() == o2.getTupleList().size())) {
+//                                return 0;
+//                            } else if (o1 == null || o1.getTupleList().size() < o2.getTupleList().size()) {
+//                                return 1;
+//                            } else {
+//                                return -1;
+//                            }
+//                        }
+//                    });
+//
+//                    //Iterate every candidate cluster
+//                    for (ClusterNode child: dominatedList) {
+//                        //flag
+//                        boolean isValid = true;
+//                        //if it is same as the cluster needs to split or
+//                        //it is same as some cluster that already visited
+//                        //it is same as cluster that already in the next layer, just continue
+//                        if (child == clusterNeedSplit || nextLayer.contains(child) || visited.contains(child)) {
+//                            continue;
+//                        }
+//                        //check domination/distance between other clusters
+//                        for (ClusterNode cluster : currentLayer) {
+//                            if (child.getClusterList().contains(cluster)) {
+//                                isValid = false;
+//                                break;
+//                            }
+//                        }
+//                        for (ClusterNode cluster : children) {
+//                            if (child.getClusterList().contains(cluster)) {
+//                                isValid = false;
+//                                break;
+//                            }
+//                        }
+//                        for (ClusterNode cluster : nextLayer) {
+//                            if (child.getClusterList().contains(cluster)) {
+//                                isValid = false;
+//                                break;
+//                            }
+//                        }
+//                        if (isValid) {
+//                            childrenHeap.add(child);
+//                        }
+//                    }
+//                    if (childrenHeap.size() != 0 && k > children.size() + nextLayer.size() + currentLayer.size()) {
+//                        ClusterNode child = childrenHeap.poll();
+//                        //Logger.info("child is null? " + (child == null));
+//                        children.add(child);
+//                        Logger.info("A child add to children list: " + child.getContent().toString());
+//                        for (TupleNode tuple : child.getTupleList()) {
+//                            //Logger.info(tuple.getContent().toString());
+//                            tuples.remove(tuple);
+//                            //here we update the dominatedList to make sure there are no overlap between child
+//                            dominatedList.removeAll(tuple.getClusterList());
+//                        }
+//                        Logger.info("The rest number of tuples need to be covered is " + tuples.size());
+//                        Logger.info("The children size is " + children.size() + "\nThe nextLayer size is "
+//                                + nextLayer.size());
+//                    } else {
+//                        break;
+//                    }
+//                }
+//                //If tuples is empty, means the children can be added to the next step
+//                if (tuples.size() == 0) {
+//                    //add children to next layer
+//                    nextLayer.addAll(children);
+//                    visited.add(clusterNeedSplit);
+//                    Logger.info("Cluster \n" + clusterNeedSplit.getContent().toString() + "\nhas been added to visited list.");
+//                } else {
+//                    nextLayer.add(clusterNeedSplit);
+//                    Logger.info("Do not have enough space to split " + clusterNeedSplit.getContent().toString());
+//                }
+//                count--;
+//            }
+//            if (size == nextLayer.size()) {
+//                answer = new ArrayList<>(nextLayer);
+//                break;
+//            } else {
+//                currentLayer = nextLayer;
+//                Logger.info("The nextLayer is ready!");
+////                for (ClusterNode cluster: nextLayer) {
+////                    System.out.println(cluster.getContent().toString());
+////                }
+//            }
 //        }
-//        Collections.sort(answer, comparator);
-//        for (ClusterNode cluster: answer) {
-//            System.out.println("After sorted answer cluster:" + cluster.getContent().toString());
+////        for (ClusterNode cluster: answer) {
+////            System.out.println("answer cluster:" + cluster.getContent().toString());
+////        }
+////        Collections.sort(answer, comparator);
+////        for (ClusterNode cluster: answer) {
+////            System.out.println("After sorted answer cluster:" + cluster.getContent().toString());
+////        }
+//        long endT = System.currentTimeMillis();
+//        if (answer.size() < (k * 0.8)) {
+//            Logger.info("Increasing k may get better result");
 //        }
-        long endT = System.currentTimeMillis();
-        if (answer.size() < (k * 0.8)) {
-            Logger.info("Increasing k may get better result");
-        }
-        if (distance < 2) {
-            Logger.info("Increasing D may get better result.");
-        }
-        result = ConstructAnswerJsonStr(answer);
-        double score = 0;
-        for (ClusterNode cluster: answer) {
-            score+= cluster.getValue();
-        }
-        Logger.info("The overall score is:" + score);
-        Logger.info("The Running Time is:" + ((endT - startT) / 1000.0) + "s");
+//        if (distance < 2) {
+//            Logger.info("Increasing D may get better result.");
+//        }
+//        result = ConstructAnswerJsonStr(answer);
+//        double score = 0;
+//        for (ClusterNode cluster: answer) {
+//            score+= cluster.getValue();
+//        }
+//        Logger.info("The overall score is:" + score);
+//        Logger.info("The Running Time is:" + ((endT - startT) / 1000.0) + "s");
+//        return result;
+//    }
+
+
+    /**
+     * Greedy-Random algorithm when k >= L
+     * @param res
+     * @param topK
+     * @param coverage
+     * @param distance
+     * @return
+     */
+    public JsonNode findclustersGreedyRandom(String res, int topK, int coverage, int distance) {
+        JsonNode result = null;
         return result;
     }
 
-    private void splitHelper(List<ClusterNode> children, Set<TupleNode> tuples, ClusterNode splitCluster, int restSpace) {
+    /**
+     * Greedy-Indiv algorithm when k >= L
+     * @param res
+     * @param topK
+     * @param coverage
+     * @param distance
+     * @return
+     */
+    public JsonNode findclustersGreedyIndiv(String res, int topK, int coverage, int distance) {
+        JsonNode result = null;
+        return result;
+    }
 
+    /**
+     * Greedy-Fixed-k-Num algorithm when k >= L
+     * @param res
+     * @param topK
+     * @param coverage
+     * @param distance
+     * @return
+     */
+    public JsonNode findclustersGreedyFiexdKNum(String res, int topK, int coverage, int distance) {
+        JsonNode result = null;
+        return result;
+    }
 
+    /**
+     * Greedy-Fixed-k-Weight algorithm when k < L
+     * @param res
+     * @param topK
+     * @param coverage
+     * @param distance
+     * @return
+     */
+    public JsonNode findclustersGreedyFixedKWeight(String res, int topK, int coverage, int distance) {
+        JsonNode result = null;
+        return result;
+    }
+
+    /**
+     * Greedy-Fixed-k-Average algorithm when k < L
+     * @param res
+     * @param topK
+     * @param coverage
+     * @param distance
+     * @return
+     */
+    public JsonNode findclustersGreedyFixedKAverage(String res, int topK, int coverage, int distance) {
+        JsonNode result = null;
+        return result;
+    }
+
+    /**
+     * Greedy-Fixed-L-Num algorithm when k < L
+     * @param res
+     * @param topK
+     * @param coverage
+     * @param distance
+     * @return
+     */
+    public JsonNode findclustersGreedyFixedLNum(String res, int topK, int coverage, int distance) {
+        JsonNode result = null;
+        return result;
+    }
+
+    /**
+     * Greedy-Fixed-L-Weight algorithm when k < L
+     * @param res
+     * @param topK
+     * @param coverage
+     * @param distance
+     * @return
+     */
+    public JsonNode findclustersGreedyFixedLWeight(String res, int topK, int coverage, int distance) {
+        JsonNode result = null;
+        return result;
+    }
+
+    /**
+     * Greedy-Fixed-L-Average algorithm when k < L
+     * @param res
+     * @param topK
+     * @param coverage
+     * @param distance
+     * @return
+     */
+    public JsonNode findclustersGreedyFixedLAverage(String res, int topK, int coverage, int distance) {
+        JsonNode result = null;
+        return result;
     }
 }
