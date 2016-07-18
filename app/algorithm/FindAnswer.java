@@ -592,6 +592,19 @@ public class FindAnswer {
 
 
     /**
+     * Greedy algorithm when k >= L
+     * @param res
+     * @param topK
+     * @param coverage
+     * @param distance
+     * @return
+     */
+    public JsonNode findclustersGreedy(String res, int topK, int coverage, int distance) {
+        JsonNode result = null;
+        return result;
+    }
+
+    /**
      * Greedy-Random algorithm when k >= L
      * @param res
      * @param topK
@@ -694,4 +707,6 @@ public class FindAnswer {
         JsonNode result = null;
         return result;
     }
+
+
 }
